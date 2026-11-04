@@ -503,11 +503,11 @@
         </div>
         <div class="keycap">
           <span class="key-phys">FN (Cherry)</span>
-          <span class="key-mac">Hardware-FN</span>
+          <span class="key-mac">FN</span>
         </div>
-        <div class="keycap remapped" id="vis-rctrl" data-code="AltRight">
+        <div class="keycap" id="vis-rctrl" data-code="ControlRight">
           <span class="key-phys">Strg (Rechts)</span>
-          <span class="key-mac" id="lbl-rctrl">Option ⌥ (@ { [ | ~)</span>
+          <span class="key-mac" id="lbl-rctrl">Control ⌃</span>
         </div>
       </div>
     </section>
@@ -559,22 +559,22 @@
 
           <div class="option-row">
             <div class="option-label">
-              <strong>Rechte Seite neben der Leertaste (<code>Alt Gr</code> &amp; <code>Strg rechts</code>)</strong>
-              <span>Legt fest, wo rechts <code>Command ⌘</code> und <code>Option ⌥</code> (wichtig für <code>@</code>, <code>{</code>, <code>[</code>, <code>|</code>, <code>~</code>) liegen.</span>
+              <strong>Rechte Seite neben der Leertaste (<code>Alt Gr</code>, <code>FN</code> &amp; <code>Strg rechts</code>)</strong>
+              <span>Standard: <code>Alt Gr → Command ⌘</code>, <code>FN → FN</code> und <code>Strg rechts → Control ⌃</code>.</span>
             </div>
             <select id="opt-right-mode" onchange="onConfigChange()">
-              <option value="mac_order">Wie Mac: AltGr → Command ⌘ | Strg rechts → Option ⌥</option>
-              <option value="option_only">AltGr bleibt Option ⌥ (für @ { [ |) | Strg rechts bleibt Control ⌃</option>
-              <option value="command_only">AltGr → Command ⌘ | Strg rechts bleibt Control ⌃</option>
+              <option value="command_only" selected>AltGr → Command ⌘ | FN → FN | Strg rechts → Control ⌃ (Empfohlen)</option>
+              <option value="mac_order">AltGr → Command ⌘ | FN → FN | Strg rechts → Option ⌥</option>
+              <option value="option_only">AltGr → Option ⌥ | FN → FN | Strg rechts → Control ⌃</option>
             </select>
           </div>
 
           <div class="option-row">
             <div class="option-label">
-              <strong>Deutsches ISO-Layout Fix: <code>&lt; &gt; |</code> und <code>^ °</code> tauschen</strong>
-              <span>Korrigiert das typische Mac-Problem bei PC-Tastaturen, bei dem die Taste links neben <code>Y</code> fälschlich <code>^ °</code> ausgibt.</span>
+              <strong>Deutsches ISO-Layout Fix: <code>&lt; &gt; |</code> und <code>^ °</code> tauschen (optional)</strong>
+              <span>Hinweis: Erfordert unter macOS 14.3+/15+ „Eingabeüberwachung“-Rechte für Terminal. Standardmäßig aus, damit Modifier sofort ohne Berechtigung greifen.</span>
             </div>
-            <input type="checkbox" id="opt-iso-swap" class="switch" checked onchange="onConfigChange()" />
+            <input type="checkbox" id="opt-iso-swap" class="switch" onchange="onConfigChange()" />
           </div>
 
           <div class="option-row">

@@ -36,22 +36,38 @@ class TestCherryRemapperMappings(unittest.TestCase):
         self.assertEqual(by_src[cr.KEYS["left_gui"]], cr.KEYS["left_alt"])
         self.assertEqual(by_src[cr.KEYS["left_alt"]], cr.KEYS["left_gui"])
 
-        # 2. Right AltGr (0xE6) -> Right Command (0xE7) and Right Ctrl (0xE4) -> Right Option (0xE6)
+        # 2. Right AltGr (0xE6) -> Right Command (0xE7), while Left & Right Strg stay Control (not remapped)
+        self.assertEqual(by_src[cr.KEYS["right_alt"]], cr.KEYS["right_gui"])
+        self.assertNotIn(cr.KEYS["left_control"], by_src)
+        self.assertNotIn(cr.KEYS["right_control"], by_src)
+
+        # 3. ISO swap is off by default so hidutil applies without macOS Input Monitoring warning
+        self.assertNotIn(cr.KEYS["non_us_backslash"], by_src)
+        self.assertNotIn(cr.KEYS["grave_accent_and_tilde"], by_src)
+
+        # 4. PrintScreen / ScrollLock / Pause -> F13 / F14 / F15
+        self.assertEqual(by_src[cr.KEYS["print_screen"]], cr.KEYS["f13"])
+        self.assertEqual(by_src[cr.KEYS["scroll_lock"]], cr.KEYS["f14"])
+        self.assertEqual(by_src[cr.KEYS["pause"]], cr.KEYS["f15"])
+
+    def test_iso_swap_and_mac_order_when_enabled(self) -> None:
+        cfg = cr.RemapConfig(
+            right_modifiers_mode="mac_order",
+            swap_iso_section_and_less_than=True,
+        )
+        mapping = cr.build_user_key_mapping(cfg)
+        by_src = {
+            m["HIDKeyboardModifierMappingSrc"]: m["HIDKeyboardModifierMappingDst"]
+            for m in mapping
+        }
         self.assertEqual(by_src[cr.KEYS["right_alt"]], cr.KEYS["right_gui"])
         self.assertEqual(by_src[cr.KEYS["right_control"]], cr.KEYS["right_alt"])
-
-        # 3. German ISO `< > |` (0x64) <-> `^ °` (0x35)
         self.assertEqual(
             by_src[cr.KEYS["non_us_backslash"]], cr.KEYS["grave_accent_and_tilde"]
         )
         self.assertEqual(
             by_src[cr.KEYS["grave_accent_and_tilde"]], cr.KEYS["non_us_backslash"]
         )
-
-        # 4. PrintScreen / ScrollLock / Pause -> F13 / F14 / F15
-        self.assertEqual(by_src[cr.KEYS["print_screen"]], cr.KEYS["f13"])
-        self.assertEqual(by_src[cr.KEYS["scroll_lock"]], cr.KEYS["f14"])
-        self.assertEqual(by_src[cr.KEYS["pause"]], cr.KEYS["f15"])
 
     def test_right_modifiers_option_only_mode(self) -> None:
         cfg = cr.RemapConfig(right_modifiers_mode="option_only")

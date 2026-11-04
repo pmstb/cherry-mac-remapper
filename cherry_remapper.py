@@ -132,14 +132,15 @@ class RemapConfig:
     swap_left_win_and_alt: bool = True
 
     # 2. Bottom-right modifiers (AltGr & Right Ctrl):
-    #    - "option_only": AltGr stays Right Option (⌥) (easy @ { [ ] } | ~), Right Ctrl stays Right Control
-    #    - "mac_order":   AltGr becomes Right Command (⌘), Right Ctrl becomes Right Option (⌥)
-    #                     -> exact Apple Magic Keyboard order: [Space] [⌘] [⌥]
-    right_modifiers_mode: str = "mac_order"
+    #    - "command_only": AltGr becomes Right Command (⌘), Right Strg stays Right Control (⌃), FN stays FN (Default!)
+    #    - "mac_order":    AltGr becomes Right Command (⌘), Right Strg becomes Right Option (⌥)
+    #    - "option_only":  AltGr stays Right Option (⌥), Right Strg stays Right Control (⌃)
+    right_modifiers_mode: str = "command_only"
 
     # 3. German ISO-DE fix: Swap `^ / °` (0x35) and `< / > / |` (0x64)
-    #    Turn on if `< > |` next to Y produces `^ °` on your Mac.
-    swap_iso_section_and_less_than: bool = True
+    #    Disabled by default because macOS 14.3+/15+ requires Input Monitoring permission
+    #    for alphanumeric key remapping in hidutil.
+    swap_iso_section_and_less_than: bool = False
 
     # 4. Map PrintScreen / ScrollLock / Pause to F13 / F14 (Brightness -) / F15 (Brightness +)
     map_pc_cluster_to_mac_fn: bool = True
