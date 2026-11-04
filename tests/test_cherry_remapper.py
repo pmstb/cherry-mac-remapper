@@ -50,6 +50,21 @@ class TestCherryRemapperMappings(unittest.TestCase):
         self.assertEqual(by_src[cr.KEYS["scroll_lock"]], cr.KEYS["f14"])
         self.assertEqual(by_src[cr.KEYS["pause"]], cr.KEYS["f15"])
 
+        # 5. Physical ≣ Menu key (0x65 between FN and Right Strg) -> Right Option (0xE6)
+        self.assertEqual(by_src[cr.KEYS["application"]], cr.KEYS["right_alt"])
+
+    def test_cherry_symbols_f_key_mode(self) -> None:
+        cfg = cr.RemapConfig(f_keys_mode="cherry_symbols", menu_key_mode="none")
+        mapping = cr.build_user_key_mapping(cfg)
+        by_src = {
+            m["HIDKeyboardModifierMappingSrc"]: m["HIDKeyboardModifierMappingDst"]
+            for m in mapping
+        }
+        self.assertEqual(by_src[cr.KEYS["f1"]], cr.KEYS["mute"])
+        self.assertEqual(by_src[cr.KEYS["f2"]], cr.KEYS["volume_down"])
+        self.assertEqual(by_src[cr.KEYS["f3"]], cr.KEYS["volume_up"])
+        self.assertNotIn(cr.KEYS["application"], by_src)
+
     def test_iso_swap_and_mac_order_when_enabled(self) -> None:
         cfg = cr.RemapConfig(
             right_modifiers_mode="mac_order",

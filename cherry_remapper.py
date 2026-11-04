@@ -88,25 +88,25 @@ KEY_LABELS: dict[int, str] = {
     0x7000000E6: "Right Option / AltGr (⌥)",
     0x7000000E7: "Right Command (⌘)",
     0x700000039: "Caps Lock (⇪)",
-    0x700000065: "Menu / App Key",
+    0x700000065: "≣ Menü-Taste (zwischen FN & Strg)",
     0x700000035: "^ / ° (oben links)",
     0x700000064: "< / > / | (neben Y)",
-    0x70000003A: "F1",
-    0x70000003B: "F2",
-    0x70000003C: "F3",
-    0x70000003D: "F4",
-    0x70000003E: "F5",
-    0x70000003F: "F6",
-    0x700000040: "F7",
-    0x700000041: "F8",
-    0x700000042: "F9",
-    0x700000043: "F10",
-    0x700000044: "F11",
-    0x700000045: "F12",
-    0x700000046: "Druck / Print Screen",
-    0x700000047: "Rollen / Scroll Lock",
-    0x700000048: "Pause / Untbr",
-    0x700000049: "Einfg / Insert",
+    0x70000003A: "F1 (Cherry Symbol: 🔇 Mute)",
+    0x70000003B: "F2 (Cherry Symbol: 🔉- Leiser)",
+    0x70000003C: "F3 (Cherry Symbol: 🔊+ Lauter)",
+    0x70000003D: "F4 (Cherry Symbol: 💡 LED An/Aus)",
+    0x70000003E: "F5 (Cherry Symbol: 🔆+ LED heller)",
+    0x70000003F: "F6 (Cherry Symbol: 🔅- LED dunkler)",
+    0x700000040: "F7 (Cherry Symbol: ⏱- Effekt langsamer)",
+    0x700000041: "F8 (Cherry Symbol: ⏱+ Effekt schneller)",
+    0x700000042: "F9 (Cherry Symbol: 🔒 win lk)",
+    0x700000043: "F10 (Cherry Symbol: 🌐 Browser)",
+    0x700000044: "F11 (Cherry Symbol: 🖥️ Computer)",
+    0x700000045: "F12 (Cherry Symbol: ✨ LED-Effekt)",
+    0x700000046: "druck / s-abf (Print Screen)",
+    0x700000047: "rollen (Scroll Lock)",
+    0x700000048: "pause / untbr (Pause)",
+    0x700000049: "einfg / insert",
     0x700000068: "F13 (Screenshot/Sondertaste)",
     0x700000069: "F14 (Display dunkler 🔅)",
     0x70000006A: "F15 (Display heller 🔆)",
@@ -145,13 +145,24 @@ class RemapConfig:
     # 4. Map PrintScreen / ScrollLock / Pause to F13 / F14 (Brightness -) / F15 (Brightness +)
     map_pc_cluster_to_mac_fn: bool = True
 
-    # 5. Map F1/F2 to F14/F15 (Display Brightness) and F10/F11/F12 to Mute/VolDown/VolUp
+    # 5. F-Key mode:
+    #    - "standard":       F1..F12 stay F1..F12 (FN + F1..F12 triggers Cherry hardware Audio & LEDs)
+    #    - "cherry_symbols": F1 -> Mute, F2 -> Vol-, F3 -> Vol+ directly without FN
+    #    - "apple_media":    F1/F2 -> Display Brightness (F14/F15), F10/F11/F12 -> Mute/Vol-/Vol+
+    f_keys_mode: str = "standard"
     map_f_keys_to_mac_media: bool = False
 
-    # 6. Optional: Caps Lock -> Control or Escape ("none", "control", "escape")
+    # 6. Physical Menu / Application key (≣ between FN and right Strg, 0x700000065):
+    #    - "right_option":  Map ≣ Menu key to Right Option (⌥) so you also have Option on the right side!
+    #    - "right_command": Map ≣ Menu key to Right Command (⌘)
+    #    - "right_control": Map ≣ Menu key to Right Control (⌃)
+    #    - "none":          Leave untouched
+    menu_key_mode: str = "right_option"
+
+    # 7. Optional: Caps Lock -> Control or Escape ("none", "control", "escape")
     caps_lock_mode: str = "none"
 
-    # 7. Custom additional rules: list of {"src": int, "dst": int}
+    # 8. Custom additional rules: list of {"src": int, "dst": int}
     custom_mappings: list[dict[str, int]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -198,14 +209,31 @@ def build_user_key_mapping(config: RemapConfig) -> list[dict[str, int]]:
         pairs.append((KEYS["pause"], KEYS["f15"]))
 
     # 5. Optional F-Key Media & Brightness mapping
-    if config.map_f_keys_to_mac_media:
-        pairs.append((KEYS["f1"], KEYS["f14"]))         # F1 -> Brightness Down
-        pairs.append((KEYS["f2"], KEYS["f15"]))         # F2 -> Brightness Up
-        pairs.append((KEYS["f10"], KEYS["mute"]))       # F10 -> Mute
+    effective_f_mode = (
+        "apple_media"
+        if (config.map_f_keys_to_mac_media and config.f_keys_mode == "standard")
+        else config.f_keys_mode
+    )
+    if effective_f_mode == "apple_media":
+        pairs.append((KEYS["f1"], KEYS["f14"]))           # F1 -> Brightness Down
+        pairs.append((KEYS["f2"], KEYS["f15"]))           # F2 -> Brightness Up
+        pairs.append((KEYS["f10"], KEYS["mute"]))         # F10 -> Mute
         pairs.append((KEYS["f11"], KEYS["volume_down"]))  # F11 -> Volume Down
         pairs.append((KEYS["f12"], KEYS["volume_up"]))    # F12 -> Volume Up
+    elif effective_f_mode == "cherry_symbols":
+        pairs.append((KEYS["f1"], KEYS["mute"]))          # F1 (🔇) -> Mute
+        pairs.append((KEYS["f2"], KEYS["volume_down"]))   # F2 (🔉-) -> Volume Down
+        pairs.append((KEYS["f3"], KEYS["volume_up"]))     # F3 (🔊+) -> Volume Up
 
-    # 6. Caps Lock option
+    # 6. Physical ≣ Menu key (0x700000065 between FN and Right Strg)
+    if config.menu_key_mode == "right_option":
+        pairs.append((KEYS["application"], KEYS["right_alt"]))
+    elif config.menu_key_mode == "right_command":
+        pairs.append((KEYS["application"], KEYS["right_gui"]))
+    elif config.menu_key_mode == "right_control":
+        pairs.append((KEYS["application"], KEYS["right_control"]))
+
+    # 7. Caps Lock option
     if config.caps_lock_mode == "control":
         pairs.append((KEYS["caps_lock"], KEYS["left_control"]))
 
