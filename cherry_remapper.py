@@ -146,10 +146,11 @@ class RemapConfig:
     map_pc_cluster_to_mac_fn: bool = True
 
     # 5. F-Key mode:
-    #    - "standard":       F1..F12 stay F1..F12 (FN + F1..F12 triggers Cherry hardware Audio & LEDs)
-    #    - "cherry_symbols": F1 -> Mute, F2 -> Vol-, F3 -> Vol+ directly without FN
+    #    - "cherry_sun":     F5 (🔆+) -> Display Brightness Up (F15), F6 (🔅-) -> Display Brightness Down (F14) (Default!)
+    #    - "cherry_symbols": F1 -> Mute, F2 -> Vol-, F3 -> Vol+, F5 -> Brightness Up (F15), F6 -> Brightness Down (F14)
     #    - "apple_media":    F1/F2 -> Display Brightness (F14/F15), F10/F11/F12 -> Mute/Vol-/Vol+
-    f_keys_mode: str = "standard"
+    #    - "standard":       F1..F12 stay untouched F1..F12
+    f_keys_mode: str = "cherry_sun"
     map_f_keys_to_mac_media: bool = False
 
     # 6. Physical Menu / Application key (≣ between FN and right Strg, 0x700000065):
@@ -211,7 +212,7 @@ def build_user_key_mapping(config: RemapConfig) -> list[dict[str, int]]:
     # 5. Optional F-Key Media & Brightness mapping
     effective_f_mode = (
         "apple_media"
-        if (config.map_f_keys_to_mac_media and config.f_keys_mode == "standard")
+        if config.map_f_keys_to_mac_media
         else config.f_keys_mode
     )
     if effective_f_mode == "apple_media":
@@ -224,6 +225,11 @@ def build_user_key_mapping(config: RemapConfig) -> list[dict[str, int]]:
         pairs.append((KEYS["f1"], KEYS["mute"]))          # F1 (🔇) -> Mute
         pairs.append((KEYS["f2"], KEYS["volume_down"]))   # F2 (🔉-) -> Volume Down
         pairs.append((KEYS["f3"], KEYS["volume_up"]))     # F3 (🔊+) -> Volume Up
+        pairs.append((KEYS["f5"], KEYS["f15"]))           # F5 (🔆+) -> Display Brightness Up
+        pairs.append((KEYS["f6"], KEYS["f14"]))           # F6 (🔅-) -> Display Brightness Down
+    elif effective_f_mode == "cherry_sun":
+        pairs.append((KEYS["f5"], KEYS["f15"]))           # F5 (🔆+) -> Display Brightness Up
+        pairs.append((KEYS["f6"], KEYS["f14"]))           # F6 (🔅-) -> Display Brightness Down
 
     # 6. Physical ≣ Menu key (0x700000065 between FN and Right Strg)
     if config.menu_key_mode == "right_option":

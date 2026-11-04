@@ -448,13 +448,13 @@
           <span class="key-phys">F4 · 💡</span>
           <span class="key-mac" style="font-size:0.78rem;">F4 (FN: LED An/Aus)</span>
         </div>
-        <div class="keycap" data-code="F5" style="min-width:68px;" title="FN + F5 macht die Tastatur-LEDs heller (Hardware)">
+        <div class="keycap remapped" id="vis-f5" data-code="F5" style="min-width:68px;" title="F5 (ohne FN): Mac-Display heller (🔆+) | FN + F5: Tastatur-LEDs">
           <span class="key-phys">F5 · 🔆+</span>
-          <span class="key-mac" style="font-size:0.78rem;">F5 (FN: LED +)</span>
+          <span class="key-mac" id="lbl-f5" style="font-size:0.78rem;">🔆 Display +</span>
         </div>
-        <div class="keycap" data-code="F6" style="min-width:68px;" title="FN + F6 macht die Tastatur-LEDs dunkler (Hardware)">
+        <div class="keycap remapped" id="vis-f6" data-code="F6" style="min-width:68px;" title="F6 (ohne FN): Mac-Display dunkler (🔅-) | FN + F6: Tastatur-LEDs">
           <span class="key-phys">F6 · 🔅-</span>
-          <span class="key-mac" style="font-size:0.78rem;">F6 (FN: LED -)</span>
+          <span class="key-mac" id="lbl-f6" style="font-size:0.78rem;">🔅 Display -</span>
         </div>
         <div class="keycap" data-code="F7" style="min-width:68px;" title="FN + F7 verlangsamt den LED-Effekt (Hardware)">
           <span class="key-phys">F7 · ⏱-</span>
@@ -658,9 +658,10 @@
               <span>Mit <code>FN + F1..F3</code> geht Lautstärke und mit <code>FN + F4..F8/F12</code> gehen die LEDs immer in Hardware. Hier kannst du einstellen, was F1–F12 <em>ohne</em> FN tun:</span>
             </div>
             <select id="opt-f-mode" onchange="onConfigChange()">
-              <option value="standard" selected>Standard F1–F12 (Ton &amp; LEDs über FN + F1–F12)</option>
-              <option value="cherry_symbols">Cherry-Symbole direkt: F1=🔇 Mute, F2=🔉 Leiser, F3=🔊 Lauter (ohne FN)</option>
+              <option value="cherry_sun" selected>F5 (🔆+) = Display heller &amp; F6 (🔅-) = Display dunkler (Empfohlen)</option>
+              <option value="cherry_symbols">Alle Cherry-Symbole direkt: F1–F3=Ton &amp; F5/F6=Display-Helligkeit (ohne FN)</option>
               <option value="apple_media">Apple-Layout: F1/F2=🔅/🔆 Helligkeit, F10–F12=🔇/🔉/🔊 Ton</option>
+              <option value="standard">Standard F1–F12 (unverändert)</option>
             </select>
           </div>
 
@@ -790,6 +791,8 @@
       f1: 0x70000003A,
       f2: 0x70000003B,
       f3: 0x70000003C,
+      f5: 0x70000003E,
+      f6: 0x70000003F,
       f10: 0x700000043,
       f11: 0x700000044,
       f12: 0x700000045,
@@ -818,6 +821,8 @@
       [KEYS.f1]: "F1 (🔇)",
       [KEYS.f2]: "F2 (🔉-)",
       [KEYS.f3]: "F3 (🔊+)",
+      [KEYS.f5]: "F5 (🔆+)",
+      [KEYS.f6]: "F6 (🔅-)",
       [KEYS.f10]: "F10 (🌐)",
       [KEYS.f11]: "F11 (🖥️)",
       [KEYS.f12]: "F12 (✨)",
@@ -879,6 +884,11 @@
         pairs.push([KEYS.f1, KEYS.mute]);
         pairs.push([KEYS.f2, KEYS.vol_down]);
         pairs.push([KEYS.f3, KEYS.vol_up]);
+        pairs.push([KEYS.f5, KEYS.f15]);
+        pairs.push([KEYS.f6, KEYS.f14]);
+      } else if (cfg.f_keys_mode === "cherry_sun") {
+        pairs.push([KEYS.f5, KEYS.f15]);
+        pairs.push([KEYS.f6, KEYS.f14]);
       }
       if (cfg.menu_key_mode === "right_option") {
         pairs.push([KEYS.application, KEYS.right_alt]);
@@ -948,9 +958,11 @@
 
       // F-keys mode
       const fMode = cfg.f_keys_mode;
-      document.getElementById("vis-f1").classList.toggle("remapped", fMode !== "standard");
-      document.getElementById("vis-f2").classList.toggle("remapped", fMode !== "standard");
+      document.getElementById("vis-f1").classList.toggle("remapped", fMode === "cherry_symbols" || fMode === "apple_media");
+      document.getElementById("vis-f2").classList.toggle("remapped", fMode === "cherry_symbols" || fMode === "apple_media");
       document.getElementById("vis-f3").classList.toggle("remapped", fMode === "cherry_symbols");
+      document.getElementById("vis-f5").classList.toggle("remapped", fMode === "cherry_sun" || fMode === "cherry_symbols");
+      document.getElementById("vis-f6").classList.toggle("remapped", fMode === "cherry_sun" || fMode === "cherry_symbols");
       for (const id of ["vis-f10", "vis-f11", "vis-f12"]) {
         document.getElementById(id).classList.toggle("remapped", fMode === "apple_media");
       }
@@ -959,6 +971,17 @@
         document.getElementById("lbl-f1").textContent = "🔇 Mute (direkt)";
         document.getElementById("lbl-f2").textContent = "🔉 Leiser (direkt)";
         document.getElementById("lbl-f3").textContent = "🔊 Lauter (direkt)";
+        document.getElementById("lbl-f5").textContent = "🔆 Display +";
+        document.getElementById("lbl-f6").textContent = "🔅 Display -";
+        document.getElementById("lbl-f10").textContent = "F10 (Browser)";
+        document.getElementById("lbl-f11").textContent = "F11 (Desktop)";
+        document.getElementById("lbl-f12").textContent = "F12 (FN: LED-Modus)";
+      } else if (fMode === "cherry_sun") {
+        document.getElementById("lbl-f1").textContent = "F1 (FN: Mute)";
+        document.getElementById("lbl-f2").textContent = "F2 (FN: Leiser)";
+        document.getElementById("lbl-f3").textContent = "F3 (FN: Lauter)";
+        document.getElementById("lbl-f5").textContent = "🔆 Display +";
+        document.getElementById("lbl-f6").textContent = "🔅 Display -";
         document.getElementById("lbl-f10").textContent = "F10 (Browser)";
         document.getElementById("lbl-f11").textContent = "F11 (Desktop)";
         document.getElementById("lbl-f12").textContent = "F12 (FN: LED-Modus)";
@@ -966,6 +989,8 @@
         document.getElementById("lbl-f1").textContent = "🔅 Display -";
         document.getElementById("lbl-f2").textContent = "🔆 Display +";
         document.getElementById("lbl-f3").textContent = "F3 (FN: Lauter)";
+        document.getElementById("lbl-f5").textContent = "F5";
+        document.getElementById("lbl-f6").textContent = "F6";
         document.getElementById("lbl-f10").textContent = "🔇 Mute";
         document.getElementById("lbl-f11").textContent = "🔉 Leiser";
         document.getElementById("lbl-f12").textContent = "🔊 Lauter";
@@ -973,6 +998,8 @@
         document.getElementById("lbl-f1").textContent = "F1 (FN: Mute)";
         document.getElementById("lbl-f2").textContent = "F2 (FN: Leiser)";
         document.getElementById("lbl-f3").textContent = "F3 (FN: Lauter)";
+        document.getElementById("lbl-f5").textContent = "F5";
+        document.getElementById("lbl-f6").textContent = "F6";
         document.getElementById("lbl-f10").textContent = "F10 (Browser)";
         document.getElementById("lbl-f11").textContent = "F11 (Desktop)";
         document.getElementById("lbl-f12").textContent = "F12 (FN: LED-Modus)";
