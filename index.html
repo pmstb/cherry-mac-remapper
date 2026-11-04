@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cherry Mac Remapper — CHERRY MX BOARD 3.0S auf macOS</title>
+  <style>
+    :root {
+      --magenta: #E20074;
+      --magenta-dark: #b8005e;
+      --magenta-soft: #fdf2f8;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --green: #16a34a;
+      --green-bg: #dcfce7;
+      --amber: #d97706;
+      --amber-bg: #fef3c7;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
+      --key-bg: #1e293b;
+      --key-text: #f8fafc;
+      --key-border: #334155;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #3b0724 100%);
+      color: #fff;
+      padding: 28px 24px;
+      border-bottom: 4px solid var(--magenta);
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .header-top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--magenta);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      box-shadow: 0 6px 18px rgba(226, 0, 116, 0.35);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: #cbd5e1;
+      font-size: 0.92rem;
+    }
+
+    .status-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .badge.ok { background: var(--green-bg); color: #166534; border-color: #86efac; }
+    .badge.warn { background: var(--amber-bg); color: #92400e; border-color: #fde68a; }
+    .badge.off { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+    main {
+      padding: 24px 0 60px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 920px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* Action Buttons */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    button.btn {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+
+    button.btn span.btn-sub {
+      font-size: 0.76rem;
+      font-weight: 400;
+      opacity: 0.86;
+    }
+
+    .btn-primary {
+      background: var(--magenta);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--magenta-dark); }
+
+    .btn-autostart {
+      background: #0f172a;
+      color: #fff;
+    }
+    .btn-autostart:hover { background: #1e293b; }
+
+    .btn-remove {
+      background: var(--red-bg);
+      color: #991b1b;
+      border-color: #fca5a5;
+    }
+    .btn-remove:hover { background: #fecaca; }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    /* Visual Keyboard Diagram */
+    .kbd-section {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+
+    .kbd-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .kbd-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      align-items: stretch;
+    }
+
+    .keycap {
+      background: var(--key-bg);
+      border: 2px solid var(--key-border);
+      border-bottom-width: 5px;
+      border-radius: 9px;
+      padding: 8px 10px;
+      min-width: 78px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
+      position: relative;
+    }
+
+    .keycap.space {
+      flex: 1;
+      min-width: 190px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .keycap.remapped {
+      border-color: var(--magenta);
+      background: linear-gradient(180deg, #1e293b 0%, #3b0724 100%);
+    }
+
+    .keycap.pressed {
+      transform: translateY(3px);
+      border-bottom-width: 2px;
+      background: var(--magenta) !important;
+      color: #fff;
+    }
+
+    .key-phys {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .key-mac {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 4px;
+    }
+
+    .keycap.remapped .key-mac {
+      color: #f472b6;
+    }
+
+    /* Options form */
+    .option-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .option-row:last-child { border-bottom: none; }
+
+    .option-label strong {
+      display: block;
+      font-size: 0.94rem;
+    }
+    .option-label span {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    select, input[type="checkbox"] {
+      accent-color: var(--magenta);
+    }
+
+    select {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.86rem;
+      background: #fff;
+    }
+
+    .switch {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      margin-top: 3px;
+    }
+
+    /* Key tester */
+    .tester-box {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .tester-pills {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .mod-pill {
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: #e2e8f0;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .mod-pill.active {
+      background: var(--magenta);
+      color: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #f8fafc;
+    }
+
+    pre.cmd-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 13px 15px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      overflow-x: auto;
+      margin: 8px 0 0;
+    }
+
+    .toast {
+      margin-top: 12px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      display: none;
+    }
+    .toast.show { display: block; }
+    .toast.success { background: var(--green-bg); color: #166534; border: 1px solid #86efac; }
+    .toast.info { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-top">
+        <div class="brand">
+          <div class="brand-icon">🍒</div>
+          <div>
+            <h1>Cherry Mac Remapper</h1>
+            <p class="subtitle">Natives Apple <code>hidutil</code>-Remapping &amp; LaunchAgent-Steuerung für CHERRY MX BOARD 3.0S (0x046A : 0x0079)</p>
+          </div>
+        </div>
+        <div class="status-badges">
+          <span id="badge-device" class="badge ok">⌨️ CHERRY MX BOARD 3.0S (0x046A:0x0079)</span>
+          <span id="badge-mapping" class="badge warn">⚡ Mapping: wird geprüft…</span>
+          <span id="badge-autostart" class="badge off">🚀 Autostart: wird geprüft…</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Visual Keyboard Preview -->
+    <section class="kbd-section">
+      <div class="kbd-title">
+        <div>
+          <strong style="font-size:1.05rem;">Visuelle Tastenbelegung deiner Cherry-Tastatur</strong>
+          <div style="font-size:0.82rem; color:#94a3b8;">Pink markierte Tasten werden gezielt nur auf der Cherry-Tastatur auf das Mac-Layout umgebogen (MacBook-Tastatur bleibt unberührt).</div>
+        </div>
+        <span style="font-size:0.78rem; background:rgba(226,0,116,0.25); border:1px solid #f472b6; padding:4px 10px; border-radius:999px;">VendorID: 1130 (0x046A) · ProductID: 121 (0x0079)</span>
+      </div>
+
+      <!-- Function & PC Cluster Row -->
+      <div class="kbd-row">
+        <div class="keycap" data-code="Escape">
+          <span class="key-phys">ESC</span>
+          <span class="key-mac">Esc</span>
+        </div>
+        <div class="keycap" id="vis-f1" data-code="F1">
+          <span class="key-phys">F1 (🔇)</span>
+          <span class="key-mac" id="lbl-f1">F1</span>
+        </div>
+        <div class="keycap" id="vis-f2" data-code="F2">
+          <span class="key-phys">F2 (🔉)</span>
+          <span class="key-mac" id="lbl-f2">F2</span>
+        </div>
+        <div class="keycap" data-code="F3">
+          <span class="key-phys">F3 (🔊)</span>
+          <span class="key-mac">F3 / Mission Ctrl</span>
+        </div>
+        <div class="keycap" id="vis-f10" data-code="F10">
+          <span class="key-phys">F10</span>
+          <span class="key-mac" id="lbl-f10">F10</span>
+        </div>
+        <div class="keycap" id="vis-f11" data-code="F11">
+          <span class="key-phys">F11</span>
+          <span class="key-mac" id="lbl-f11">F11</span>
+        </div>
+        <div class="keycap" id="vis-f12" data-code="F12">
+          <span class="key-phys">F12</span>
+          <span class="key-mac" id="lbl-f12">F12</span>
+        </div>
+        <div class="keycap remapped" id="vis-prtsc" data-code="F13">
+          <span class="key-phys">Druck / PrtSc</span>
+          <span class="key-mac" id="lbl-prtsc">F13 (Screenshot)</span>
+        </div>
+        <div class="keycap remapped" id="vis-scrlk" data-code="F14">
+          <span class="key-phys">Rollen / ScrLk</span>
+          <span class="key-mac" id="lbl-scrlk">F14 (🔅 Dunkler)</span>
+        </div>
+        <div class="keycap remapped" id="vis-pause" data-code="F15">
+          <span class="key-phys">Pause / Untbr</span>
+          <span class="key-mac" id="lbl-pause">F15 (🔆 Heller)</span>
+        </div>
+      </div>
+
+      <!-- ISO Swap Row -->
+      <div class="kbd-row">
+        <div class="keycap remapped" id="vis-grave" data-code="Backquote">
+          <span class="key-phys">Taste links neben 1</span>
+          <span class="key-mac" id="lbl-grave">^ / ° (korrigiert)</span>
+        </div>
+        <div class="keycap remapped" id="vis-caps" data-code="CapsLock">
+          <span class="key-phys">Caps Lock ⇪</span>
+          <span class="key-mac" id="lbl-caps">Caps Lock ⇪</span>
+        </div>
+        <div class="keycap remapped" id="vis-iso" data-code="IntlBackslash">
+          <span class="key-phys">Taste links neben Y</span>
+          <span class="key-mac" id="lbl-iso">&lt; / &gt; / | (korrigiert)</span>
+        </div>
+      </div>
+
+      <!-- Bottom Modifier Row -->
+      <div class="kbd-row" style="margin-bottom:0;">
+        <div class="keycap" data-code="ControlLeft">
+          <span class="key-phys">Strg (Links)</span>
+          <span class="key-mac">Control ⌃</span>
+        </div>
+        <div class="keycap remapped" id="vis-lwin" data-code="AltLeft">
+          <span class="key-phys">⊞ Windows (Links)</span>
+          <span class="key-mac" id="lbl-lwin">Option ⌥</span>
+        </div>
+        <div class="keycap remapped" id="vis-lalt" data-code="MetaLeft">
+          <span class="key-phys">Alt (Links)</span>
+          <span class="key-mac" id="lbl-lalt">Command ⌘</span>
+        </div>
+        <div class="keycap space" data-code="Space">
+          <span class="key-phys">Leertaste</span>
+          <span class="key-mac">Space</span>
+        </div>
+        <div class="keycap remapped" id="vis-ralt" data-code="MetaRight">
+          <span class="key-phys">Alt Gr (Rechts)</span>
+          <span class="key-mac" id="lbl-ralt">Command ⌘ (Rechts)</span>
+        </div>
+        <div class="keycap">
+          <span class="key-phys">FN (Cherry)</span>
+          <span class="key-mac">Hardware-FN</span>
+        </div>
+        <div class="keycap remapped" id="vis-rctrl" data-code="AltRight">
+          <span class="key-phys">Strg (Rechts)</span>
+          <span class="key-mac" id="lbl-rctrl">Option ⌥ (@ { [ | ~)</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <!-- Left Column: Controls & Options -->
+      <div>
+        <div class="card">
+          <h2>1. Schnellsteuerung &amp; Autostart</h2>
+          <p style="margin:0 0 10px; font-size:0.88rem; color:var(--muted);">
+            Steuere die Belegung sofort oder richte den Autostart ein. Wenn du später deine originale Mac-Tastatur wieder nutzt, kannst du den Autostart mit einem Klick rückstandslos entfernen.
+          </p>
+
+          <div class="actions-grid">
+            <button class="btn btn-primary" onclick="applyNow()">
+              <span>✅ Mac-Layout jetzt aktivieren</span>
+              <span class="btn-sub">Setzt <code>hidutil</code> sofort für die Cherry-Tastatur</span>
+            </button>
+
+            <button class="btn btn-autostart" onclick="installAutostart()">
+              <span>🚀 Autostart aktivieren</span>
+              <span class="btn-sub">Installiert LaunchAgent (bleibt nach Neustart aktiv)</span>
+            </button>
+
+            <button class="btn btn-remove" onclick="removeAutostart()">
+              <span>🧹 Autostart entfernen &amp; Reset</span>
+              <span class="btn-sub">Löscht LaunchAgent &amp; setzt Tasten zurück (für Mac-Tastatur)</span>
+            </button>
+
+            <button class="btn btn-secondary" onclick="resetNow()">
+              <span>↩️ Nur temporär zurücksetzen</span>
+              <span class="btn-sub">Windows-Standard bis zum nächsten Login</span>
+            </button>
+          </div>
+
+          <div id="status-toast" class="toast"></div>
+        </div>
+
+        <div class="card">
+          <h2>2. Tasten-Optionen anpassen</h2>
+
+          <div class="option-row">
+            <div class="option-label">
+              <strong>Linke Modifier wie beim Mac (Win ↔ Alt tauschen)</strong>
+              <span>Macht aus <code>[Strg] [Win] [Alt]</code> → <code>[Control ⌃] [Option ⌥] [Command ⌘]</code> direkt links neben der Leertaste.</span>
+            </div>
+            <input type="checkbox" id="opt-swap-left" class="switch" checked onchange="onConfigChange()" />
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">
+              <strong>Rechte Seite neben der Leertaste (<code>Alt Gr</code> &amp; <code>Strg rechts</code>)</strong>
+              <span>Legt fest, wo rechts <code>Command ⌘</code> und <code>Option ⌥</code> (wichtig für <code>@</code>, <code>{</code>, <code>[</code>, <code>|</code>, <code>~</code>) liegen.</span>
+            </div>
+            <select id="opt-right-mode" onchange="onConfigChange()">
+              <option value="mac_order">Wie Mac: AltGr → Command ⌘ | Strg rechts → Option ⌥</option>
+              <option value="option_only">AltGr bleibt Option ⌥ (für @ { [ |) | Strg rechts bleibt Control ⌃</option>
+              <option value="command_only">AltGr → Command ⌘ | Strg rechts bleibt Control ⌃</option>
+            </select>
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">
+              <strong>Deutsches ISO-Layout Fix: <code>&lt; &gt; |</code> und <code>^ °</code> tauschen</strong>
+              <span>Korrigiert das typische Mac-Problem bei PC-Tastaturen, bei dem die Taste links neben <code>Y</code> fälschlich <code>^ °</code> ausgibt.</span>
+            </div>
+            <input type="checkbox" id="opt-iso-swap" class="switch" checked onchange="onConfigChange()" />
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">
+              <strong>Druck / Rollen / Pause → Screenshot (F13) &amp; Display-Helligkeit (F14/F15)</strong>
+              <span>Belegt <code>Rollen</code> mit Display dunkler (🔅) und <code>Pause</code> mit Display heller (🔆) – nativ von macOS unterstützt!</span>
+            </div>
+            <input type="checkbox" id="opt-pc-cluster" class="switch" checked onchange="onConfigChange()" />
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">
+              <strong>F1/F2 auf Helligkeit &amp; F10–F12 direkt auf Lautstärke legen</strong>
+              <span>Optional: Wenn F1/F2 und F10–F12 ohne FN-Taste direkt Helligkeit &amp; Ton steuern sollen. (Mit FN+F1–F3 geht Ton auf der Cherry ohnehin immer!)</span>
+            </div>
+            <input type="checkbox" id="opt-f-media" class="switch" onchange="onConfigChange()" />
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">
+              <strong>Caps Lock (Feststelltaste) umbelegen</strong>
+              <span>Optional Caps Lock als zusätzliche Control-Taste nutzen.</span>
+            </div>
+            <select id="opt-capslock" onchange="onConfigChange()">
+              <option value="none">Normal (Caps Lock ⇪)</option>
+              <option value="control">Als Control (⌃) nutzen</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Key Tester & Active Mapping Table -->
+      <div>
+        <div class="card">
+          <h2>
+            <span>3. Live-Tastentester (Direkt ausprobieren!)</span>
+            <span style="font-size:0.76rem; font-weight:500; color:var(--magenta);">Drücke eine beliebige Taste</span>
+          </h2>
+          <div class="tester-box" id="tester-box" tabindex="0">
+            <div style="font-size:0.84rem; color:var(--muted);">Letzte erkannte Taste in macOS:</div>
+            <div id="test-key-main" style="font-size:1.75rem; font-weight:800; margin:6px 0; color:var(--text);">—</div>
+            <div id="test-key-detail" style="font-size:0.82rem; color:var(--muted); font-family:monospace;">Code: - | KeyCode: -</div>
+            <div class="tester-pills">
+              <span class="mod-pill" id="pill-ctrl">Control ⌃</span>
+              <span class="mod-pill" id="pill-opt">Option ⌥</span>
+              <span class="mod-pill" id="pill-cmd">Command ⌘</span>
+              <span class="mod-pill" id="pill-shift">Shift ⇧</span>
+            </div>
+          </div>
+          <p style="margin:10px 0 0; font-size:0.8rem; color:var(--muted);">
+            💡 <strong>Schnellcheck für deine Cherry:</strong><br/>
+            • Drücke <strong>Alt (links neben Space)</strong> → <code>Command ⌘</code> muss aufleuchten.<br/>
+            • Drücke <strong>Windows-Taste</strong> → <code>Option ⌥</code> muss aufleuchten.<br/>
+            • Drücke <strong>Option + L</strong> → erzeugt <code>@</code> | Taste links neben <strong>Y</strong> → erzeugt <code>&lt;</code>.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>4. Aktive HID-Übersetzungstabelle</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Physische Taste (Cherry)</th>
+                <th>Wird in macOS zu</th>
+                <th>HID-Code</th>
+              </tr>
+            </thead>
+            <tbody id="mapping-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal / Transparency Section -->
+    <div class="card">
+      <h2>5. Transparenz: Exakte Apple <code>hidutil</code>-Befehle &amp; Terminal-Steuerung</h2>
+      <p style="margin:0 0 8px; font-size:0.86rem; color:var(--muted);">
+        Dieses Programm lädt keinerlei fremde Treiber herunter, sondern ruft ausschließlich das in macOS integrierte Systemwerkzeug <code>/usr/bin/hidutil</code> mit dem Gerätefilter <code>{"VendorID":1130,"ProductID":121}</code> auf:
+      </p>
+      <div style="font-size:0.82rem; font-weight:600; margin-top:8px;">Aktueller <code>hidutil</code>-Befehl (Mac-Layout aktivieren):</div>
+      <pre class="cmd-box" id="cmd-apply"></pre>
+
+      <div style="font-size:0.82rem; font-weight:600; margin-top:12px;">Komplett-Reset &amp; Autostart entfernen (wenn deine Mac-Tastatur wieder da ist):</div>
+      <pre class="cmd-box" id="cmd-remove">python3 cherry_remapper.py remove-autostart</pre>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = window.location.protocol.startsWith("http")
+      ? window.location.origin
+      : "http://127.0.0.1:8765";
+
+    const KEYS = {
+      left_control: 0x7000000E0,
+      left_alt: 0x7000000E2,
+      left_gui: 0x7000000E3,
+      right_control: 0x7000000E4,
+      right_alt: 0x7000000E6,
+      right_gui: 0x7000000E7,
+      caps_lock: 0x700000039,
+      grave: 0x700000035,
+      iso_backslash: 0x700000064,
+      f1: 0x70000003A,
+      f2: 0x70000003B,
+      f10: 0x700000043,
+      f11: 0x700000044,
+      f12: 0x700000045,
+      print_screen: 0x700000046,
+      scroll_lock: 0x700000047,
+      pause: 0x700000048,
+      f13: 0x700000068,
+      f14: 0x700000069,
+      f15: 0x70000006A,
+      mute: 0x70000007F,
+      vol_up: 0x700000080,
+      vol_down: 0x700000081
+    };
+
+    const LABELS = {
+      [KEYS.left_control]: "Left Control (⌃)",
+      [KEYS.left_alt]: "Left Option / Alt (⌥)",
+      [KEYS.left_gui]: "Left Command / Win (⌘)",
+      [KEYS.right_control]: "Right Control (⌃)",
+      [KEYS.right_alt]: "Right Option / AltGr (⌥)",
+      [KEYS.right_gui]: "Right Command (⌘)",
+      [KEYS.caps_lock]: "Caps Lock (⇪)",
+      [KEYS.grave]: "^ / ° (oben links)",
+      [KEYS.iso_backslash]: "< / > / | (neben Y)",
+      [KEYS.f1]: "F1",
+      [KEYS.f2]: "F2",
+      [KEYS.f10]: "F10",
+      [KEYS.f11]: "F11",
+      [KEYS.f12]: "F12",
+      [KEYS.print_screen]: "Druck / Print Screen",
+      [KEYS.scroll_lock]: "Rollen / Scroll Lock",
+      [KEYS.pause]: "Pause / Untbr",
+      [KEYS.f13]: "F13 (Screenshot)",
+      [KEYS.f14]: "F14 (Display dunkler 🔅)",
+      [KEYS.f15]: "F15 (Display heller 🔆)",
+      [KEYS.mute]: "Ton aus (Mute 🔇)",
+      [KEYS.vol_up]: "Lauter (🔊)",
+      [KEYS.vol_down]: "Leiser (🔉)"
+    };
+
+    function readFormConfig() {
+      return {
+        vendor_id: 1130,
+        product_id: 121,
+        swap_left_win_and_alt: document.getElementById("opt-swap-left").checked,
+        right_modifiers_mode: document.getElementById("opt-right-mode").value,
+        swap_iso_section_and_less_than: document.getElementById("opt-iso-swap").checked,
+        map_pc_cluster_to_mac_fn: document.getElementById("opt-pc-cluster").checked,
+        map_f_keys_to_mac_media: document.getElementById("opt-f-media").checked,
+        caps_lock_mode: document.getElementById("opt-capslock").value
+      };
+    }
+
+    function computeLocalPairs(cfg) {
+      const pairs = [];
+      if (cfg.swap_left_win_and_alt) {
+        pairs.push([KEYS.left_gui, KEYS.left_alt]);
+        pairs.push([KEYS.left_alt, KEYS.left_gui]);
+      }
+      if (cfg.right_modifiers_mode === "mac_order") {
+        pairs.push([KEYS.right_alt, KEYS.right_gui]);
+        pairs.push([KEYS.right_control, KEYS.right_alt]);
+      } else if (cfg.right_modifiers_mode === "command_only") {
+        pairs.push([KEYS.right_alt, KEYS.right_gui]);
+      }
+      if (cfg.swap_iso_section_and_less_than) {
+        pairs.push([KEYS.iso_backslash, KEYS.grave]);
+        pairs.push([KEYS.grave, KEYS.iso_backslash]);
+      }
+      if (cfg.map_pc_cluster_to_mac_fn) {
+        pairs.push([KEYS.print_screen, KEYS.f13]);
+        pairs.push([KEYS.scroll_lock, KEYS.f14]);
+        pairs.push([KEYS.pause, KEYS.f15]);
+      }
+      if (cfg.map_f_keys_to_mac_media) {
+        pairs.push([KEYS.f1, KEYS.f14]);
+        pairs.push([KEYS.f2, KEYS.f15]);
+        pairs.push([KEYS.f10, KEYS.mute]);
+        pairs.push([KEYS.f11, KEYS.vol_down]);
+        pairs.push([KEYS.f12, KEYS.vol_up]);
+      }
+      if (cfg.caps_lock_mode === "control") {
+        pairs.push([KEYS.caps_lock, KEYS.left_control]);
+      }
+      return pairs;
+    }
+
+    function updateVisualKeyboard(cfg) {
+      // Left Win & Alt
+      const lwin = document.getElementById("vis-lwin");
+      const lalt = document.getElementById("vis-lalt");
+      lwin.classList.toggle("remapped", cfg.swap_left_win_and_alt);
+      lalt.classList.toggle("remapped", cfg.swap_left_win_and_alt);
+      document.getElementById("lbl-lwin").textContent = cfg.swap_left_win_and_alt ? "Option ⌥" : "Command ⌘";
+      document.getElementById("lbl-lalt").textContent = cfg.swap_left_win_and_alt ? "Command ⌘" : "Option ⌥";
+
+      // Right Alt & Right Ctrl
+      const ralt = document.getElementById("vis-ralt");
+      const rctrl = document.getElementById("vis-rctrl");
+      if (cfg.right_modifiers_mode === "mac_order") {
+        ralt.classList.add("remapped");
+        rctrl.classList.add("remapped");
+        document.getElementById("lbl-ralt").textContent = "Command ⌘ (Rechts)";
+        document.getElementById("lbl-rctrl").textContent = "Option ⌥ (@ { [ | ~)";
+      } else if (cfg.right_modifiers_mode === "command_only") {
+        ralt.classList.add("remapped");
+        rctrl.classList.remove("remapped");
+        document.getElementById("lbl-ralt").textContent = "Command ⌘ (Rechts)";
+        document.getElementById("lbl-rctrl").textContent = "Control ⌃";
+      } else {
+        ralt.classList.remove("remapped");
+        rctrl.classList.remove("remapped");
+        document.getElementById("lbl-ralt").textContent = "Option ⌥ (@ { [ | ~)";
+        document.getElementById("lbl-rctrl").textContent = "Control ⌃";
+      }
+
+      // ISO swap
+      document.getElementById("vis-grave").classList.toggle("remapped", cfg.swap_iso_section_and_less_than);
+      document.getElementById("vis-iso").classList.toggle("remapped", cfg.swap_iso_section_and_less_than);
+      document.getElementById("lbl-grave").textContent = cfg.swap_iso_section_and_less_than ? "^ / ° (korrigiert)" : "< / > / |";
+      document.getElementById("lbl-iso").textContent = cfg.swap_iso_section_and_less_than ? "< / > / | (korrigiert)" : "^ / °";
+
+      // PC Cluster
+      for (const id of ["vis-prtsc", "vis-scrlk", "vis-pause"]) {
+        document.getElementById(id).classList.toggle("remapped", cfg.map_pc_cluster_to_mac_fn);
+      }
+
+      // F-keys media
+      for (const id of ["vis-f1", "vis-f2", "vis-f10", "vis-f11", "vis-f12"]) {
+        document.getElementById(id).classList.toggle("remapped", cfg.map_f_keys_to_mac_media);
+      }
+      document.getElementById("lbl-f1").textContent = cfg.map_f_keys_to_mac_media ? "🔅 Dunkler" : "F1";
+      document.getElementById("lbl-f2").textContent = cfg.map_f_keys_to_mac_media ? "🔆 Heller" : "F2";
+      document.getElementById("lbl-f10").textContent = cfg.map_f_keys_to_mac_media ? "🔇 Mute" : "F10";
+      document.getElementById("lbl-f11").textContent = cfg.map_f_keys_to_mac_media ? "🔉 Leiser" : "F11";
+      document.getElementById("lbl-f12").textContent = cfg.map_f_keys_to_mac_media ? "🔊 Lauter" : "F12";
+
+      // Caps lock
+      const caps = document.getElementById("vis-caps");
+      caps.classList.toggle("remapped", cfg.caps_lock_mode === "control");
+      document.getElementById("lbl-caps").textContent = cfg.caps_lock_mode === "control" ? "Control ⌃" : "Caps Lock ⇪";
+
+      // Render table & command
+      const pairs = computeLocalPairs(cfg);
+      const tbody = document.getElementById("mapping-tbody");
+      tbody.innerHTML = pairs.map(([src, dst]) => `
+        <tr>
+          <td><strong>${LABELS[src] || src}</strong></td>
+          <td style="color:var(--magenta); font-weight:600;">→ ${LABELS[dst] || dst}</td>
+          <td><code>0x${src.toString(16).toUpperCase()} → 0x${dst.toString(16).toUpperCase()}</code></td>
+        </tr>
+      `).join("");
+
+      const mappingJson = JSON.stringify({
+        UserKeyMapping: pairs.map(([src, dst]) => ({
+          HIDKeyboardModifierMappingSrc: src,
+          HIDKeyboardModifierMappingDst: dst
+        }))
+      });
+      document.getElementById("cmd-apply").textContent =
+        `/usr/bin/hidutil property --matching '{"VendorID":1130,"ProductID":121}' --set '${mappingJson}'`;
+    }
+
+    function showToast(msg, kind = "success") {
+      const el = document.getElementById("status-toast");
+      el.textContent = msg;
+      el.className = `toast show ${kind}`;
+    }
+
+    function updateBadgesFromStatus(st) {
+      const devBadge = document.getElementById("badge-device");
+      const mapBadge = document.getElementById("badge-mapping");
+      const autoBadge = document.getElementById("badge-autostart");
+
+      if (st.cherry_connected) {
+        const d = st.devices[0];
+        devBadge.className = "badge ok";
+        devBadge.textContent = `⌨️ ${d.model_name} verbunden (${d.vendor_hex}:${d.product_hex})`;
+      } else {
+        devBadge.className = "badge warn";
+        devBadge.textContent = "⌨️ Cherry aktuell nicht per USB erkannt";
+      }
+
+      if (st.mapping_active) {
+        mapBadge.className = "badge ok";
+        mapBadge.textContent = "✅ Mac-Layout: AKTIV";
+      } else {
+        mapBadge.className = "badge off";
+        mapBadge.textContent = "⚪ Mac-Layout: Inaktiv (Windows-Standard)";
+      }
+
+      if (st.autostart && st.autostart.installed) {
+        autoBadge.className = "badge ok";
+        autoBadge.textContent = "🚀 Autostart (LaunchAgent): EINGERICHTET";
+      } else {
+        autoBadge.className = "badge off";
+        autoBadge.textContent = "🚀 Autostart: Aus";
+      }
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/api/status`);
+        if (!res.ok) throw new Error("Backend offline");
+        const st = await res.json();
+        if (st.config) {
+          document.getElementById("opt-swap-left").checked = !!st.config.swap_left_win_and_alt;
+          document.getElementById("opt-right-mode").value = st.config.right_modifiers_mode || "mac_order";
+          document.getElementById("opt-iso-swap").checked = !!st.config.swap_iso_section_and_less_than;
+          document.getElementById("opt-pc-cluster").checked = !!st.config.map_pc_cluster_to_mac_fn;
+          document.getElementById("opt-f-media").checked = !!st.config.map_f_keys_to_mac_media;
+          document.getElementById("opt-capslock").value = st.config.caps_lock_mode || "none";
+        }
+        updateVisualKeyboard(readFormConfig());
+        updateBadgesFromStatus(st);
+      } catch (_) {
+        updateVisualKeyboard(readFormConfig());
+        document.getElementById("badge-mapping").textContent = "⚡ Vorschau-Modus (start-cherry-mac.command für Live-Klick)";
+      }
+    }
+
+    function onConfigChange() {
+      updateVisualKeyboard(readFormConfig());
+    }
+
+    async function applyNow() {
+      const cfg = readFormConfig();
+      try {
+        const res = await fetch(`${API_BASE}/api/apply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cfg)
+        });
+        const data = await res.json();
+        updateBadgesFromStatus(data.status);
+        showToast("✅ Mac-Tastenbelegung wurde sofort auf deiner Cherry MX Board 3.0S aktiviert!", "success");
+      } catch (_) {
+        showToast("💡 Lokaler Server läuft noch nicht – starte `start-cherry-mac.command` oder kopiere den Befehl unten ins Terminal.", "info");
+      }
+    }
+
+    async function installAutostart() {
+      const cfg = readFormConfig();
+      try {
+        const res = await fetch(`${API_BASE}/api/autostart/install`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cfg)
+        });
+        const data = await res.json();
+        updateBadgesFromStatus(data.status);
+        showToast("🚀 Autostart (LaunchAgent) eingerichtet & Mac-Layout aktiviert! Überlebt jeden Neustart.", "success");
+      } catch (_) {
+        showToast("💡 Bitte `python3 cherry_remapper.py install-autostart` ausführen oder `start-cherry-mac.command` starten.", "info");
+      }
+    }
+
+    async function removeAutostart() {
+      try {
+        const res = await fetch(`${API_BASE}/api/autostart/remove`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ also_reset_keys: true })
+        });
+        const data = await res.json();
+        updateBadgesFromStatus(data.status);
+        showToast("🧹 Autostart-LaunchAgent wurde entfernt und alle Tasten auf Werkseinstellung zurückgesetzt!", "success");
+      } catch (_) {
+        showToast("💡 Bitte `python3 cherry_remapper.py remove-autostart` im Terminal ausführen.", "info");
+      }
+    }
+
+    async function resetNow() {
+      try {
+        const res = await fetch(`${API_BASE}/api/reset`, { method: "POST" });
+        const data = await res.json();
+        updateBadgesFromStatus(data.status);
+        showToast("↩️ Cherry-Tastatur temporär auf Windows-Standard zurückgesetzt.", "info");
+      } catch (_) {
+        showToast("💡 Bitte `python3 cherry_remapper.py reset` im Terminal ausführen.", "info");
+      }
+    }
+
+    // Live Keyboard Tester
+    window.addEventListener("keydown", (e) => {
+      if (["Meta", "Alt", "Control", "Shift", "F13", "F14", "F15"].includes(e.key)) {
+        e.preventDefault();
+      }
+      document.getElementById("test-key-main").textContent = `${e.key === " " ? "Space" : e.key}`;
+      document.getElementById("test-key-detail").textContent = `Code: ${e.code} | KeyCode: ${e.keyCode} | Location: ${e.location}`;
+
+      document.getElementById("pill-ctrl").classList.toggle("active", e.ctrlKey);
+      document.getElementById("pill-opt").classList.toggle("active", e.altKey);
+      document.getElementById("pill-cmd").classList.toggle("active", e.metaKey);
+      document.getElementById("pill-shift").classList.toggle("active", e.shiftKey);
+
+      document.querySelectorAll(`.keycap[data-code="${e.code}"]`).forEach(el => el.classList.add("pressed"));
+    });
+
+    window.addEventListener("keyup", (e) => {
+      document.getElementById("pill-ctrl").classList.toggle("active", e.ctrlKey);
+      document.getElementById("pill-opt").classList.toggle("active", e.altKey);
+      document.getElementById("pill-cmd").classList.toggle("active", e.metaKey);
+      document.getElementById("pill-shift").classList.toggle("active", e.shiftKey);
+      document.querySelectorAll(`.keycap[data-code="${e.code}"]`).forEach(el => el.classList.remove("pressed"));
+    });
+
+    fetchStatus();
+  </script>
+</body>
+</html>
