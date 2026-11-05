@@ -163,7 +163,10 @@ class TestLaunchAgentAndConfigPersistence(unittest.TestCase):
 
         self.assertEqual(plist_data["Label"], cr.LAUNCH_AGENT_LABEL)
         self.assertTrue(plist_data["RunAtLoad"])
-        self.assertEqual(plist_data["ProgramArguments"][0], "/usr/bin/hidutil")
+        self.assertEqual(plist_data["StartInterval"], 5)
+        self.assertEqual(plist_data["ProgramArguments"][0], "/bin/sh")
+        self.assertIn("/usr/bin/hidutil", plist_data["ProgramArguments"][2])
+        self.assertIn("LaunchEvents", plist_data)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)

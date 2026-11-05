@@ -431,14 +431,53 @@ def get_launch_agent_path(custom_dir: Path | None = None) -> Path:
     return base / f"{LAUNCH_AGENT_LABEL}.plist"
 
 
+def build_watchdog_shell_script(config: RemapConfig) -> str:
+    """
+    Build a fast, read-only check script for launchd that inspects whether the
+    Cherry keyboard's `UserKeyMapping` was cleared (e.g. after macOS Sleep/Wake
+    or USB-C Hub / Monitor reconnect) and only calls `hidutil --set` when needed.
+    """
+    matching = json.dumps(
+        {"VendorID": config.vendor_id, "ProductID": config.product_id},
+        separators=(",", ":"),
+    )
+    mapping = build_user_key_mapping(config)
+    payload = json.dumps({"UserKeyMapping": mapping}, separators=(",", ":"))
+    return (
+        f"out=$(/usr/bin/hidutil property --matching '{matching}' --get UserKeyMapping 2>/dev/null); "
+        f"case \"$out\" in *UserKeyMapping*) "
+        f"case \"$out\" in *HIDKeyboardModifierMappingSrc*) ;; "
+        f"*) /usr/bin/hidutil property --matching '{matching}' --set '{payload}' >/dev/null 2>&1 ;; "
+        f"esac ;; esac"
+    )
+
+
 def generate_launch_agent_plist(config: RemapConfig) -> bytes:
-    """Generate the macOS LaunchAgent XML plist content for `hidutil`."""
-    cmd = build_hidutil_command(config, reset=False)
+    """
+    Generate the macOS LaunchAgent XML plist content for `hidutil`.
+    Includes:
+      - `RunAtLoad`: applies at login/boot
+      - `StartInterval` (5s): lightweight read-only check so Sleep/Wake or
+        USB-C monitor hub reconnects automatically restore the mapping within 5s
+      - `LaunchEvents` (`com.apple.iokit.matching`): immediate USB hotplug trigger
+    """
+    script = build_watchdog_shell_script(config)
     plist_dict = {
         "Label": LAUNCH_AGENT_LABEL,
-        "ProgramArguments": cmd,
+        "ProgramArguments": ["/bin/sh", "-c", script],
         "RunAtLoad": True,
+        "StartInterval": 5,
         "KeepAlive": False,
+        "LaunchEvents": {
+            "com.apple.iokit.matching": {
+                "com.cherry.usb.hotplug": {
+                    "IOMatchLaunchStream": True,
+                    "IOProviderClass": "IOUSBHostDevice",
+                    "idVendor": config.vendor_id,
+                    "idProduct": config.product_id,
+                }
+            }
+        },
     }
     return plistlib.dumps(plist_dict, fmt=plistlib.FMT_XML)
 
